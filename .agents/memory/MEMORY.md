@@ -1,0 +1,2 @@
+- [Clerk Wiring for Replit](clerk-replit-wiring.md) — Replit-managed Clerk has specific wiring requirements that differ from generic Clerk docs.
+- [Clerk Package Versions](clerk-package-versions.md) — @clerk/shared v3+ removed publishableKeyFromHost from @clerk/shared/keys; use @clerk/react/internal instead.
