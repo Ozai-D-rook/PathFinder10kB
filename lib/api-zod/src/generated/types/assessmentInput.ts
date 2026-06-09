@@ -5,7 +5,8 @@
  * PathFinder 10k API - AI-powered career guidance for Nigerian students
  * OpenAPI spec version: 0.1.0
  */
+import type { AssessmentInputAnswers } from './assessmentInputAnswers';
 
-export interface HealthStatus {
-  status: string;
+export interface AssessmentInput {
+  answers: AssessmentInputAnswers;
 }
