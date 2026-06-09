@@ -1,0 +1,199 @@
+Replit Power Prompt
+
+Build a full-stack AI-powered career recommendation web application called PathFinder 10k.
+
+The product is designed for secondary school students in Nigeria, with an initial focus on Borno State and Maiduguri. It should help SSS1–SSS3 students and JAMB candidates choose suitable university career paths based on their interests, strengths, and assessment answers. The target is to support up to 10,000 students.
+
+Tech Stack
+
+Use:
+
+React for the frontend
+Node.js/Express for the backend
+Supabase for authentication and database storage
+Gemini API for AI-powered career explanations
+A placeholder/mock ML prediction service for now, but structure the code so a real ML API can be connected later
+Core Features to Build
+Landing Page
+App name: PathFinder 10k
+Short description: “Helping Nigerian students discover the right university career path.”
+Call-to-action buttons:
+Get Started
+Login
+Mobile-first, clean, student-friendly design.
+Student Registration
+Students should register with:
+Full name
+School name
+Phone number
+Class level: SSS1, SSS2, SSS3, or JAMBite
+Password
+Login System
+Use Supabase authentication.
+After login, redirect students to the dashboard.
+Student Dashboard
+Show:
+Welcome message
+Start Assessment button
+Saved Career Recommendations
+Profile summary
+
+Career Assessment Form
+Create a simple assessment form that asks questions about:
+
+Favourite school subjects
+Interest areas
+Skills
+Personality traits
+Preferred work style
+Academic strengths
+Problem-solving ability
+Creativity level
+Communication confidence
+Technology interest
+Business interest
+Engineering interest
+Health/science interest
+Social/helping interest
+
+Use multiple-choice questions and store the responses in Supabase.
+
+Career Recommendation Engine
+For now, create a mock ML logic that recommends career categories based on student answers.
+
+The recommendation should support at least:
+
+Engineering
+Business
+Medicine/Health Sciences
+Computer Science/Technology
+Law
+Education
+Social Sciences
+Agriculture
+Arts and Humanities
+Environmental Sciences
+
+Structure this logic in a separate service file so it can later be replaced with a real ML prediction API.
+
+Career Result Page
+Display:
+Top recommended career path
+2–3 alternative career paths
+Reason for recommendation
+Suitable university courses
+Required skills
+Possible job roles
+JAMB subject combination guidance
+Save Result button
+
+Gemini API Integration
+After the mock ML recommendation is generated, send the recommended career path to Gemini API and ask Gemini to generate:
+
+Simple explanation of the career
+Career roadmap
+Skills needed
+Recommended subjects
+External learning suggestions
+Encouraging advice for the student
+
+Make the explanation simple enough for Nigerian secondary school students to understand.
+
+Saved Results
+Students should be able to save their career recommendations.
+Saved results should include:
+Student ID
+Assessment answers
+Recommended career
+Alternative careers
+Gemini explanation
+Date created
+Mobile-Friendly UI
+The interface must be:
+Simple
+Clean
+Responsive
+Easy to use on smartphones
+English only
+Database Tables in Supabase
+
+Create these tables:
+
+students
+id
+full_name
+school_name
+phone_number
+class_level
+created_at
+assessments
+id
+student_id
+answers
+created_at
+recommendations
+id
+student_id
+assessment_id
+top_career
+alternative_careers
+jamb_subjects
+ai_explanation
+created_at
+Pages to Create
+
+Create the following pages:
+
+/ Landing Page
+/register
+/login
+/dashboard
+/assessment
+/results/:id
+/saved-results
+/profile
+Design Style
+
+Use a modern educational design.
+
+Brand feel:
+
+Trustworthy
+Youthful
+Clean
+Nigerian student-friendly
+
+Suggested colors:
+
+Deep blue
+White
+Light green
+Soft grey
+
+Use cards, rounded corners, clear buttons, and simple icons.
+
+Important Requirements
+Use environment variables for Supabase keys and Gemini API key.
+Add clear comments in the code.
+Make the project easy for beginners to understand.
+Add error handling for login, registration, assessment submission, and API calls.
+Add loading states where necessary.
+If Gemini API key is missing, show a fallback explanation instead of breaking the app.
+Keep the first version focused only on university career paths, not vocational training, scholarships, or university ranking.
+Final Output Expected
+
+Generate the complete project structure, including:
+
+Frontend React components
+Backend Express API routes
+Supabase configuration
+Mock ML recommendation service
+Gemini service
+Assessment form
+Dashboard
+Results page
+Saved results page
+Basic styling
+README file explaining how to run the project
+
+Make the app functional enough for a hackathon MVP and easy to expand later.
