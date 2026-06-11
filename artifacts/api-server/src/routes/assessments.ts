@@ -50,7 +50,7 @@ router.post("/assessments", async (req, res) => {
     .values({ studentId: student.id, answers: parsed.data.answers })
     .returning();
 
-  const { topCareer, alternatives, reason } = recommendCareers(
+  const { topCareer, alternatives, reason } = await recommendCareers(
     parsed.data.answers as Record<string, string | string[]>
   );
 
