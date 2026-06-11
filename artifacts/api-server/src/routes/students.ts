@@ -1,22 +1,18 @@
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db, studentsTable, assessmentsTable, recommendationsTable } from "@workspace/db";
-import { getAuth } from "@clerk/express";
-import {
-  CreateStudentProfileBody,
-} from "@workspace/api-zod";
+import { CreateStudentProfileBody } from "@workspace/api-zod";
 
 const router = Router();
 
 // GET /api/students/profile
 router.get("/students/profile", async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
   const student = await db
     .select()
     .from(studentsTable)
-    .where(eq(studentsTable.clerkId, userId))
+    .where(eq(studentsTable.userId, req.userId))
     .limit(1);
 
   if (!student.length) return res.status(404).json({ error: "Profile not found" });
@@ -25,8 +21,7 @@ router.get("/students/profile", async (req, res) => {
 
 // POST /api/students/profile
 router.post("/students/profile", async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
   const parsed = CreateStudentProfileBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
@@ -34,7 +29,7 @@ router.post("/students/profile", async (req, res) => {
   const existing = await db
     .select()
     .from(studentsTable)
-    .where(eq(studentsTable.clerkId, userId))
+    .where(eq(studentsTable.userId, req.userId))
     .limit(1);
 
   if (existing.length) {
@@ -46,7 +41,7 @@ router.post("/students/profile", async (req, res) => {
         phoneNumber: parsed.data.phoneNumber ?? null,
         classLevel: parsed.data.classLevel,
       })
-      .where(eq(studentsTable.clerkId, userId))
+      .where(eq(studentsTable.userId, req.userId))
       .returning();
     return res.status(201).json(updated[0]);
   }
@@ -54,7 +49,7 @@ router.post("/students/profile", async (req, res) => {
   const created = await db
     .insert(studentsTable)
     .values({
-      clerkId: userId,
+      userId: req.userId,
       fullName: parsed.data.fullName,
       schoolName: parsed.data.schoolName,
       phoneNumber: parsed.data.phoneNumber ?? null,
@@ -67,13 +62,12 @@ router.post("/students/profile", async (req, res) => {
 
 // GET /api/students/dashboard
 router.get("/students/dashboard", async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
   const students = await db
     .select()
     .from(studentsTable)
-    .where(eq(studentsTable.clerkId, userId))
+    .where(eq(studentsTable.userId, req.userId))
     .limit(1);
 
   const student = students[0] ?? null;
@@ -89,20 +83,15 @@ router.get("/students/dashboard", async (req, res) => {
   }
 
   const [assessments, savedRecs] = await Promise.all([
-    db
-      .select()
-      .from(assessmentsTable)
-      .where(eq(assessmentsTable.studentId, student.id)),
-    db
-      .select()
-      .from(recommendationsTable)
-      .where(eq(recommendationsTable.studentId, student.id)),
+    db.select().from(assessmentsTable).where(eq(assessmentsTable.studentId, student.id)),
+    db.select().from(recommendationsTable).where(eq(recommendationsTable.studentId, student.id)),
   ]);
 
   const saved = savedRecs.filter((r) => r.isSaved);
-  const latest = savedRecs.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )[0] ?? null;
+  const latest =
+    savedRecs.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0] ?? null;
 
   return res.json({
     student,

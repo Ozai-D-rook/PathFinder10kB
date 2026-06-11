@@ -1,14 +1,15 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const studentsTable = pgTable("students", {
   id: serial("id").primaryKey(),
-  clerkId: text("clerk_id").notNull().unique(),
+  userId: text("user_id").notNull().unique(),
   fullName: text("full_name").notNull(),
   schoolName: text("school_name").notNull(),
   phoneNumber: text("phone_number"),
   classLevel: text("class_level").notNull(),
+  isAdmin: boolean("is_admin").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

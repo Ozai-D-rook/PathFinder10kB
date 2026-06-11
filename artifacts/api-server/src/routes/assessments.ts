@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { eq } from "drizzle-orm";
 import { db, studentsTable, assessmentsTable, recommendationsTable } from "@workspace/db";
-import { getAuth } from "@clerk/express";
 import { SubmitAssessmentBody, GetAssessmentParams } from "@workspace/api-zod";
 import { recommendCareers } from "../services/careerEngine";
 import { generateCareerExplanation } from "../services/geminiService";
@@ -10,13 +9,12 @@ const router = Router();
 
 // GET /api/assessments
 router.get("/assessments", async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
   const students = await db
     .select()
     .from(studentsTable)
-    .where(eq(studentsTable.clerkId, userId))
+    .where(eq(studentsTable.userId, req.userId))
     .limit(1);
 
   if (!students.length) return res.json([]);
@@ -31,8 +29,7 @@ router.get("/assessments", async (req, res) => {
 
 // POST /api/assessments
 router.post("/assessments", async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
   const parsed = SubmitAssessmentBody.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
@@ -40,7 +37,7 @@ router.post("/assessments", async (req, res) => {
   const students = await db
     .select()
     .from(studentsTable)
-    .where(eq(studentsTable.clerkId, userId))
+    .where(eq(studentsTable.userId, req.userId))
     .limit(1);
 
   if (!students.length)
@@ -50,10 +47,7 @@ router.post("/assessments", async (req, res) => {
 
   const [assessment] = await db
     .insert(assessmentsTable)
-    .values({
-      studentId: student.id,
-      answers: parsed.data.answers,
-    })
+    .values({ studentId: student.id, answers: parsed.data.answers })
     .returning();
 
   const { topCareer, alternatives, reason } = recommendCareers(
@@ -87,8 +81,7 @@ router.post("/assessments", async (req, res) => {
 
 // GET /api/assessments/:id
 router.get("/assessments/:id", async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+  if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
 
   const params = GetAssessmentParams.safeParse({ id: Number(req.params.id) });
   if (!params.success) return res.status(400).json({ error: "Invalid ID" });
@@ -96,7 +89,7 @@ router.get("/assessments/:id", async (req, res) => {
   const students = await db
     .select()
     .from(studentsTable)
-    .where(eq(studentsTable.clerkId, userId))
+    .where(eq(studentsTable.userId, req.userId))
     .limit(1);
 
   if (!students.length) return res.status(404).json({ error: "Not found" });
