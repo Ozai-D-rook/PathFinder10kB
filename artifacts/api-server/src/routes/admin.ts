@@ -9,7 +9,10 @@ async function requireAdmin(
   res: import("express").Response,
   next: import("express").NextFunction
 ) {
-  if (!req.userId) return res.status(401).json({ error: "Unauthorized" });
+  if (!req.userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
 
   const students = await db
     .select({ isAdmin: studentsTable.isAdmin })
@@ -18,7 +21,8 @@ async function requireAdmin(
     .limit(1);
 
   if (!students.length || !students[0].isAdmin) {
-    return res.status(403).json({ error: "Admin access required" });
+    res.status(403).json({ error: "Admin access required" });
+    return;
   }
 
   next();
