@@ -30,4 +30,17 @@ app.use(supabaseAuth);
 
 app.use("/api", jitProvisioning, router);
 
+app.use((err: any, _req: any, res: any, _next: any) => {
+  logger.error(
+    { err, message: err.message, code: err.code, detail: err.detail },
+    "Unhandled error in API"
+  );
+  res.status(500).json({
+    error: "Internal Server Error",
+    message: err.message,
+    code: err.code,
+    detail: err.detail,
+  });
+});
+
 export default app;
