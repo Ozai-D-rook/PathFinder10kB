@@ -1,3 +1,7 @@
-import app from "../artifacts/api-server/dist/app.mjs";
+const appPromise = import("../artifacts/api-server/dist/app.mjs");
 
-export default app;
+module.exports = async (req, res) => {
+  const appModule = await appPromise;
+  const app = appModule.default || appModule;
+  return app(req, res);
+};
