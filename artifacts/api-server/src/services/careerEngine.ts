@@ -318,7 +318,7 @@ async function renderModelRecommend(answers: AssessmentAnswers): Promise<Recomme
       throw new Error(`ML model returned status ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { recommended_career?: string };
     const predictedRole = data.recommended_career;
     if (!predictedRole) return null;
 
