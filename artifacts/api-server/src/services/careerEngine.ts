@@ -165,7 +165,209 @@ function fallbackRecommend(answers: AssessmentAnswers): RecommendationResult {
 }
 
 // ---------------------------------------------------------------------------
-// Primary: Gemini AI-powered recommendation
+// Primary: Render ML Model recommendation
+// ---------------------------------------------------------------------------
+function mapAnswersToMLFeatures(answers: AssessmentAnswers) {
+  const getVal = (field: string): string => {
+    const val = answers[field];
+    if (Array.isArray(val)) return val[0]?.toString() || "";
+    return val?.toString() || "";
+  };
+
+  let math_score = 60;
+  if (getVal("subjects") === "mathematics") math_score += 20;
+  if (getVal("academicStrengths") === "maths") math_score += 20;
+
+  let english_score = 65;
+  if (getVal("subjects") === "english") english_score += 15;
+  if (getVal("academicStrengths") === "languages") english_score += 15;
+  if (getVal("communication") === "very_confident") english_score += 5;
+
+  let biology_score = 60;
+  if (getVal("subjects") === "biology") biology_score += 20;
+  if (getVal("academicStrengths") === "sciences") biology_score += 10;
+  if (getVal("healthInterest") === "very_high") biology_score += 10;
+
+  let chemistry_score = 60;
+  if (getVal("subjects") === "physics") chemistry_score += 10;
+  if (getVal("academicStrengths") === "sciences") chemistry_score += 20;
+  if (getVal("healthInterest") === "very_high") chemistry_score += 10;
+
+  let physics_score = 60;
+  if (getVal("subjects") === "physics") physics_score += 20;
+  if (getVal("academicStrengths") === "sciences") physics_score += 20;
+
+  let economics_score = 60;
+  if (getVal("subjects") === "economics") economics_score += 20;
+  if (getVal("academicStrengths") === "commercial") economics_score += 20;
+
+  let tech_interest = 50;
+  const tech = getVal("technologyInterest");
+  if (tech === "very_high") tech_interest = 95;
+  else if (tech === "high") tech_interest = 80;
+  else if (tech === "moderate" || tech === "medical_tech" || tech === "agricultural_tech") tech_interest = 60;
+  else if (tech === "low") tech_interest = 20;
+  if (getVal("interests") === "technology") tech_interest = Math.max(tech_interest, 90);
+
+  let health_interest = 50;
+  const health = getVal("healthInterest");
+  if (health === "very_high") health_interest = 95;
+  else if (health === "high") health_interest = 80;
+  else if (health === "moderate" || health === "pharmacy" || health === "nursing") health_interest = 60;
+  else if (health === "low") health_interest = 20;
+  if (getVal("interests") === "health") health_interest = Math.max(health_interest, 90);
+
+  let business_interest = 50;
+  const biz = getVal("businessInterest");
+  if (biz === "very_high") business_interest = 95;
+  else if (biz === "high") business_interest = 80;
+  else if (biz === "moderate" || biz === "social_enterprise" || biz === "agriculture_business") business_interest = 60;
+  else if (biz === "low") business_interest = 20;
+  if (getVal("interests") === "business") business_interest = Math.max(business_interest, 90);
+
+  let arts_interest = 50;
+  if (getVal("interests") === "writing") arts_interest = 85;
+  if (getVal("academicStrengths") === "arts") arts_interest = Math.max(arts_interest, 80);
+
+  let social_help_interest = 50;
+  const soc = getVal("socialInterest");
+  if (soc === "very_high") social_help_interest = 95;
+  else if (soc === "high") social_help_interest = 80;
+  else if (soc === "moderate" || soc === "teaching" || soc === "policy") social_help_interest = 65;
+  else if (soc === "low") social_help_interest = 25;
+
+  let analytical_thinking = 55;
+  if (getVal("personality") === "analytical") analytical_thinking = 85;
+  if (getVal("skills") === "numbers") analytical_thinking = Math.max(analytical_thinking, 80);
+
+  let problem_solving = 60;
+  const ps = getVal("problemSolving");
+  if (ps === "calculate" || ps === "experiment" || ps === "research") problem_solving = 85;
+  else if (ps === "practical" || ps === "creative" || ps === "discuss") problem_solving = 75;
+
+  let creativity = 50;
+  const creat = getVal("creativity");
+  if (creat === "very_creative" || creat === "technical" || creat === "literary") creativity = 90;
+  else if (creat === "moderately") creativity = 75;
+  else if (creat === "practical") creativity = 50;
+  else if (creat === "not_sure") creativity = 40;
+  if (getVal("personality") === "creative") creativity = Math.max(creativity, 85);
+
+  let leadership = 55;
+  if (getVal("skills") === "leadership") leadership = 85;
+  if (getVal("personality") === "ambitious") leadership = Math.max(leadership, 75);
+
+  let teamwork = 60;
+  if (getVal("problemSolving") === "discuss") teamwork = 85;
+  if (getVal("personality") === "social") teamwork = Math.max(teamwork, 80);
+
+  let communication = 60;
+  const comm = getVal("communication");
+  if (comm === "very_confident") communication = 95;
+  else if (comm === "confident") communication = 80;
+  else if (comm === "moderate" || comm === "one_on_one") communication = 65;
+  else if (comm === "prefer_writing" || comm === "working_on_it") communication = 50;
+  if (getVal("skills") === "communication") communication = Math.max(communication, 85);
+
+  let decision_making = 60;
+  if (getVal("problemSolving") === "research" || getVal("personality") === "analytical") decision_making = 80;
+
+  const stem_score = Math.round((math_score + physics_score + chemistry_score + tech_interest) / 4);
+  const health_score = Math.round((biology_score + chemistry_score + health_interest) / 3);
+  const business_score = Math.round((economics_score + math_score + business_interest) / 3);
+
+  return {
+    math_score,
+    english_score,
+    biology_score,
+    chemistry_score,
+    physics_score,
+    economics_score,
+    tech_interest,
+    health_interest,
+    business_interest,
+    arts_interest,
+    social_help_interest,
+    analytical_thinking,
+    problem_solving,
+    creativity,
+    leadership,
+    teamwork,
+    communication,
+    decision_making,
+    stem_score,
+    health_score,
+    business_score
+  };
+}
+
+async function renderModelRecommend(answers: AssessmentAnswers): Promise<RecommendationResult | null> {
+  const modelUrl = process.env.RENDER_ML_API_URL || "https://pathfinder-1-ck5b.onrender.com/predict";
+  const payload = mapAnswersToMLFeatures(answers);
+
+  try {
+    const response = await fetch(modelUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`ML model returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    const predictedRole = data.recommended_career;
+    if (!predictedRole) return null;
+
+    // Matching logic
+    // 1. Direct match with name (case-insensitive)
+    let topCareer = CAREER_PATHS.find(
+      (c) => c.name.toLowerCase() === predictedRole.toLowerCase()
+    );
+
+    // 2. Match with jobRoles (case-insensitive)
+    if (!topCareer) {
+      topCareer = CAREER_PATHS.find((c) =>
+        c.jobRoles.some((role) => role.toLowerCase() === predictedRole.toLowerCase())
+      );
+    }
+
+    // 3. Match with keywords (case-insensitive)
+    if (!topCareer) {
+      topCareer = CAREER_PATHS.find((c) =>
+        c.keywords.some((kw) => predictedRole.toLowerCase().includes(kw.toLowerCase()))
+      );
+    }
+
+    // Fallback to rules-based top career if no matching category was found
+    const fallback = fallbackRecommend(answers);
+    if (!topCareer) {
+      topCareer = fallback.topCareer;
+    }
+
+    // Calculate alternatives from fallback engine, excluding the matched top career
+    const alternatives = [fallback.topCareer, ...fallback.alternatives]
+      .filter((c) => c.name !== topCareer!.name)
+      .slice(0, 2);
+
+    const reason = `Based on your assessment answers, our machine learning model recommends a career path in ${topCareer.name} (closest match to your predicted role: '${predictedRole}'). Your responses align with the interests, skills, and strengths typical for this field.`;
+
+    return {
+      topCareer,
+      alternatives,
+      reason,
+    };
+  } catch (error) {
+    console.error("Render ML Model prediction failed:", error);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Secondary: Gemini AI-powered recommendation
 // ---------------------------------------------------------------------------
 const CAREER_NAMES = CAREER_PATHS.map((c) => c.name);
 
@@ -229,9 +431,12 @@ Respond with JSON only:
 }
 
 // ---------------------------------------------------------------------------
-// Public API — tries Gemini first, falls back to rule-based
+// Public API — tries Render ML first, falls back to Gemini, then rules-based
 // ---------------------------------------------------------------------------
 export async function recommendCareers(answers: AssessmentAnswers): Promise<RecommendationResult> {
+  const mlResult = await renderModelRecommend(answers);
+  if (mlResult) return mlResult;
+
   const aiResult = await geminiRecommend(answers);
   return aiResult ?? fallbackRecommend(answers);
 }
