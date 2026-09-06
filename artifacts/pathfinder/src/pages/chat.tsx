@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   MessageSquare,
   Plus,
@@ -57,6 +58,7 @@ const SUGGESTIONS = [
 export default function Chat() {
   const [activeConvId, setActiveConvId] = useState<number | null>(null);
   const [inputMessage, setInputMessage] = useState("");
+  const [isHistorySheetOpen, setIsHistorySheetOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const queryClient = useQueryClient();
@@ -94,13 +96,14 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, sendMessage.isPending]);
 
-  const handleNewChat = () => {
+  const handleNewChat = (closeSheet?: () => void) => {
     createConversation.mutate(
       { data: { title: "New Chat" } },
       {
         onSuccess: (newConv) => {
           setActiveConvId(newConv.id);
           queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+          if (closeSheet) closeSheet();
         },
         onError: () => {
           toast({
@@ -179,96 +182,120 @@ export default function Chat() {
     );
   };
 
+  const renderHistoryContent = (onSelect?: () => void) => (
+    <div className="flex flex-col h-full bg-white">
+      <div className="p-3 border-b flex items-center justify-between bg-muted/30">
+        <h2 className="font-semibold text-sm flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-primary" />
+          Chat History
+        </h2>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => handleNewChat(onSelect)}
+          disabled={createConversation.isPending}
+          className="gap-1 text-xs h-8"
+          data-testid="button-new-chat"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          New Chat
+        </Button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-2 space-y-1">
+        {isLoadingConvs ? (
+          <div className="space-y-2 p-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+        ) : conversations && conversations.length > 0 ? (
+          conversations.map((conv) => {
+            const isActive = activeConvId === conv.id;
+            return (
+              <div
+                key={conv.id}
+                onClick={() => {
+                  setActiveConvId(conv.id);
+                  if (onSelect) onSelect();
+                }}
+                className={`group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm cursor-pointer transition-colors ${
+                  isActive
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                }`}
+                data-testid={`conv-item-${conv.id}`}
+              >
+                <span className="truncate flex-1 text-xs">{conv.title}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="opacity-0 group-hover:opacity-100 h-6 w-6 text-muted-foreground hover:text-destructive shrink-0"
+                  onClick={(e) => handleDeleteChat(e, conv.id)}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            );
+          })
+        ) : (
+          <div className="p-4 text-center text-xs text-muted-foreground">
+            No chat history yet. Start a new conversation!
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <ProtectedLayout>
-      <div className="h-[calc(100vh-6rem)] flex flex-col md:flex-row gap-4">
-        {/* Sidebar Chat History */}
-        <Card className="w-full md:w-72 flex flex-col bg-white border shrink-0 h-48 md:h-full overflow-hidden">
-          <div className="p-3 border-b flex items-center justify-between bg-muted/30">
-            <h2 className="font-semibold text-sm flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-primary" />
-              Chat History
-            </h2>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleNewChat}
-              disabled={createConversation.isPending}
-              className="gap-1 text-xs h-8"
-              data-testid="button-new-chat"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              New Chat
-            </Button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {isLoadingConvs ? (
-              <div className="space-y-2 p-2">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
-            ) : conversations && conversations.length > 0 ? (
-              conversations.map((conv) => {
-                const isActive = activeConvId === conv.id;
-                return (
-                  <div
-                    key={conv.id}
-                    onClick={() => setActiveConvId(conv.id)}
-                    className={`group flex items-center justify-between px-3 py-2.5 rounded-lg text-sm cursor-pointer transition-colors ${
-                      isActive
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "hover:bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                    data-testid={`conv-item-${conv.id}`}
-                  >
-                    <span className="truncate flex-1 text-xs">{conv.title}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="opacity-0 group-hover:opacity-100 h-6 w-6 text-muted-foreground hover:text-destructive shrink-0"
-                      onClick={(e) => handleDeleteChat(e, conv.id)}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="p-4 text-center text-xs text-muted-foreground">
-                No chat history yet. Start a new conversation!
-              </div>
-            )}
-          </div>
+      <div className="h-[calc(100vh-5.5rem)] md:h-[calc(100vh-6rem)] flex flex-col md:flex-row gap-4">
+        {/* Desktop Permanent Sidebar */}
+        <Card className="hidden md:flex w-72 flex-col bg-white border shrink-0 h-full overflow-hidden">
+          {renderHistoryContent()}
         </Card>
 
         {/* Main Chat Area */}
         <Card className="flex-1 flex flex-col bg-white border overflow-hidden h-full">
           {/* Chat Header */}
-          <div className="p-4 border-b flex items-center justify-between bg-white z-10 shadow-xs">
+          <div className="p-3 md:p-4 border-b flex items-center justify-between bg-white z-10 shadow-xs">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                <Bot className="w-5 h-5" />
+              <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
+                <Bot className="w-4 h-4 md:w-5 md:h-5" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-bold text-foreground text-base">PathFinder AI Advisor</h1>
+                  <h1 className="font-bold text-foreground text-sm md:text-base">PathFinder AI Advisor</h1>
                   <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-800 border-emerald-200">
                     Live
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] md:text-xs text-muted-foreground line-clamp-1">
                   Personalized career & educational guidance for Nigerian students
                 </p>
               </div>
             </div>
 
-            {profile && (
-              <Badge variant="outline" className="hidden sm:inline-flex text-xs">
-                👤 {profile.fullName.split(" ")[0]} ({profile.classLevel})
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Mobile Chat History Trigger Sheet */}
+              <Sheet open={isHistorySheetOpen} onOpenChange={setIsHistorySheetOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="md:hidden gap-1.5 text-xs h-8">
+                    <MessageSquare className="w-4 h-4 text-primary" />
+                    <span className="hidden sm:inline">History</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-80 p-0 flex flex-col">
+                  {renderHistoryContent(() => setIsHistorySheetOpen(false))}
+                </SheetContent>
+              </Sheet>
+
+              {profile && (
+                <Badge variant="outline" className="hidden sm:inline-flex text-xs">
+                  👤 {profile.fullName.split(" ")[0]} ({profile.classLevel})
+                </Badge>
+              )}
+            </div>
           </div>
 
           {/* Chat Messages */}
