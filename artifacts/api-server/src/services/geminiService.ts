@@ -57,8 +57,9 @@ Keep language simple — avoid technical jargon. Make it feel personal and Niger
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
+
       config: {
         maxOutputTokens: 8192,
         responseMimeType: "application/json",

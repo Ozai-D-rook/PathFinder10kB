@@ -18,6 +18,8 @@ tags:
     description: Career recommendation operations
   - name: dashboard
     description: Dashboard summary operations
+  - name: chat
+    description: AI Career Advisor chat operations
 
 paths:
   /healthz:
@@ -220,6 +222,116 @@ paths:
                 items:
                   $ref: "#/components/schemas/CareerPath"
 
+  /chat/conversations:
+    get:
+      operationId: listConversations
+      tags: [chat]
+      summary: List all chat conversations for current student
+      security:
+        - clerkAuth: []
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [chat]
+      summary: Create a new chat conversation
+      security:
+        - clerkAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationInput"
+      responses:
+        "201":
+          description: Conversation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /chat/conversations/{id}:
+    delete:
+      operationId: deleteConversation
+      tags: [chat]
+      summary: Delete a chat conversation
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+
+  /chat/conversations/{id}/messages:
+    get:
+      operationId: listMessages
+      tags: [chat]
+      summary: Get all messages for a specific conversation
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatMessage"
+    post:
+      operationId: sendMessage
+      tags: [chat]
+      summary: Send a message and get AI response
+      security:
+        - clerkAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatMessageInput"
+      responses:
+        "201":
+          description: Message sent and AI response received
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageResult"
+
 components:
   securitySchemes:
     clerkAuth:
@@ -419,3 +531,69 @@ components:
         - assessmentCount
         - savedRecommendationsCount
         - hasCompletedAssessment
+
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - studentId
+        - title
+        - createdAt
+
+    ConversationInput:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    ChatMessageInput:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    SendMessageResult:
+      type: object
+      properties:
+        userMessage:
+          $ref: "#/components/schemas/ChatMessage"
+        aiMessage:
+          $ref: "#/components/schemas/ChatMessage"
+      required:
+        - userMessage
+        - aiMessage

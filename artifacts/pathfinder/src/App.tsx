@@ -16,6 +16,7 @@ import Results from "@/pages/results";
 import SavedResults from "@/pages/saved-results";
 import Profile from "@/pages/profile";
 import Admin from "@/pages/admin";
+import Chat from "@/pages/chat";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -196,6 +197,7 @@ function Router() {
       <Route path="/results/:id" component={Results} />
       <Route path="/saved-results" component={SavedResults} />
       <Route path="/profile" component={Profile} />
+      <Route path="/chat" component={Chat} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>

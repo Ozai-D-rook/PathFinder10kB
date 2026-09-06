@@ -205,3 +205,64 @@ export const ListCareersResponseItem = zod.object({
 export const ListCareersResponse = zod.array(ListCareersResponseItem)
 
 
+/**
+ * @summary List all chat conversations for current student
+ */
+export const ListConversationsResponseItem = zod.object({
+  "id": zod.number(),
+  "studentId": zod.number(),
+  "title": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListConversationsResponse = zod.array(ListConversationsResponseItem)
+
+
+/**
+ * @summary Create a new chat conversation
+ */
+export const CreateConversationBody = zod.object({
+  "title": zod.string()
+})
+
+
+/**
+ * @summary Delete a chat conversation
+ */
+export const DeleteConversationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const DeleteConversationResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary Get all messages for a specific conversation
+ */
+export const ListMessagesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListMessagesResponseItem = zod.object({
+  "id": zod.number(),
+  "conversationId": zod.number(),
+  "role": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+export const ListMessagesResponse = zod.array(ListMessagesResponseItem)
+
+
+/**
+ * @summary Send a message and get AI response
+ */
+export const SendMessageParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SendMessageBody = zod.object({
+  "content": zod.string()
+})
+
+

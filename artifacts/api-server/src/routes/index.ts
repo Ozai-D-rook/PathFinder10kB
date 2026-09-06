@@ -4,6 +4,7 @@ import studentsRouter from "./students";
 import assessmentsRouter from "./assessments";
 import recommendationsRouter from "./recommendations";
 import adminRouter from "./admin";
+import chatRouter from "./chat";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use(studentsRouter);
 router.use(assessmentsRouter);
 router.use(recommendationsRouter);
 router.use(adminRouter);
+router.use(chatRouter);
 
 export default router;

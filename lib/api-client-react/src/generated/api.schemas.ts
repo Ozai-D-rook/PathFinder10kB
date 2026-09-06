@@ -107,3 +107,35 @@ export interface DashboardSummary {
   hasCompletedAssessment: boolean;
 }
 
+export interface Conversation {
+  id: number;
+  studentId: number;
+  title: string;
+  createdAt: string;
+}
+
+export interface ConversationInput {
+  title: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  conversationId: number;
+  role: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface ChatMessageInput {
+  content: string;
+}
+
+export interface SendMessageResult {
+  userMessage: ChatMessage;
+  aiMessage: ChatMessage;
+}
+
+export type DeleteConversation200 = {
+  success: boolean;
+};
+

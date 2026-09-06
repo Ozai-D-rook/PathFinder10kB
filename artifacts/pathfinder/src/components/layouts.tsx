@@ -69,6 +69,7 @@ export function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: "📊" },
     { href: "/assessment", label: "Take Assessment", icon: "📝" },
+    { href: "/chat", label: "AI Career Advisor", icon: "💬" },
     { href: "/saved-results", label: "Saved Results", icon: "⭐" },
     { href: "/profile", label: "My Profile", icon: "👤" },
   ];
