@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   useListConversations,
   useCreateConversation,
@@ -333,9 +334,15 @@ export default function Chat() {
                           : "bg-white border border-border text-foreground rounded-tl-none space-y-2"
                       }`}
                     >
-                      <div className="whitespace-pre-wrap leading-relaxed">
-                        {msg.content}
-                      </div>
+                      {isUser ? (
+                        <div className="whitespace-pre-wrap leading-relaxed">
+                          {msg.content}
+                        </div>
+                      ) : (
+                        <div className="prose prose-sm max-w-none text-foreground dark:prose-invert prose-headings:font-semibold prose-headings:text-foreground prose-a:text-primary prose-strong:font-bold prose-strong:text-foreground prose-ul:list-disc prose-ol:list-decimal prose-li:my-0.5 leading-relaxed">
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </div>
+                      )}
                       <span
                         className={`text-[10px] block mt-1 ${
                           isUser ? "text-primary-foreground/70 text-right" : "text-muted-foreground"
